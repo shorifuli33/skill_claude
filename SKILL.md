@@ -1,519 +1,529 @@
-# App Mapper - Advanced Features
-
-This document describes the advanced features added based on your specifications:
-
-1. **All Languages Support** (Language-Agnostic)
-2. **Interactive Tree View TUI** (Browsable Hierarchy)
-3. **Full Graph JSON** (With Connections & Dependencies)
-
-## 1. Language-Agnostic Detection
-
-### What It Means
-
-The skill automatically detects application patterns **regardless of programming language**. You don't need to specify the language - it figures it out and applies the right analysis.
-
-### Supported Languages
-
-**Direct Support (Built-in Patterns):**
-- JavaScript/TypeScript
-- Python
-- Go
-- Java/Kotlin
-- PHP
-- Ruby
-- C#/.NET
-- Rust
-
-**Language-Agnostic (Pattern-Based):**
-- Any other language can be analyzed using pattern recognition
-- Detects: functions, classes, permissions, roles, workflows, endpoints
-- Works even if the language isn't explicitly listed
-
-### How It Works
-
-```
-Input: Source code (any language)
-         ↓
-Detection: Analyze code structure
-         ↓
-Patterns: Identify roles, auth, workflows, etc.
-         ↓
-Output: JSON, Markdown, TUI (same for all languages)
-```
-
-### Example
-
-Same skill works for all these:
-
-```javascript
-// JavaScript
-const ROLES = { admin: 'admin', editor: 'editor' };
-```
-
-```python
-# Python
-ROLES = {'admin': 'admin', 'editor': 'editor'}
-```
-
-```go
-// Go
-var ROLES = map[string]string{"admin": "admin", "editor": "editor"}
-```
-
-```java
-// Java
-Map<String, String> ROLES = new HashMap<>();
-ROLES.put("admin", "admin");
-```
-
-All detected the same way - no configuration needed!
-
-### Pattern Categories Detected
-
-1. **Role/Permission Systems**
-   - RBAC (Role-Based Access Control)
-   - ACL (Access Control Lists)
-   - ABAC (Attribute-Based)
-
-2. **Authentication Methods**
-   - JWT, Sessions, OAuth, SAML, API Keys, WebAuthn
-   - Any auth pattern in the code
-
-3. **API Endpoints**
-   - REST, GraphQL, RPC, WebSocket, gRPC
-   - Any endpoint pattern
-
-4. **Data Models & Types**
-   - Database entities, content types
-   - Data structures and their relationships
-
-5. **Workflows & Flows**
-   - State machines, business logic
-   - User journeys and processes
-
-6. **Data Flows**
-   - How data moves through the system
-   - Between endpoints and domains
-
-## 2. Interactive Tree View TUI
-
-### What It Is
-
-An **interactive, browsable terminal UI** instead of a static display. Navigate with arrow keys, search, filter, and explore the application structure in real-time.
-
-### Features
-
-**Navigation:**
-- Arrow keys (`↑`, `↓`) — Move between items
-- Right/Left arrows (`→`, `←`) — Expand/collapse branches
-- Enter — Show details of selected item
-- `q` — Quit
-
-**Filtering & Search:**
-- `/` — Search for specific features or domains
-- `f` — Filter by risk level (HIGH, MEDIUM, LOW, ALL)
-- `c` — Show flow connections and dependencies
-- `d` — Show data flows and data movements
-- `s` — Statistics and metrics panel
-- `?` — Help menu
-
-**Display Modes:**
-- **Tree View** — Hierarchical domain and feature structure
-- **Flow View** — User flows with steps and endpoints
-- **Dependency View** — How domains and flows connect
-- **Data Flow View** — How data moves through the system
-
-### Example Interaction
-
-```
-Initial View (Tree Mode):
-┌─ Application Map ─────────────────────────┐
-│ ▼ Authentication & Authorization  [5]     │
-│   ├─ ▼ User Roles                [5]     │
-│   │   ├─ Admin [manage all]             │
-│   │   ├─ Editor [edit content]          │
-│   │   └─ Viewer [read only]             │
-│   ├─ JWT Authentication          [→Auth]│
-│   └─ Session Management                 │
-│ ▶ Content Management              [3]    │
-│ ▶ Users & Permissions             [2]    │
-└───────────────────────────────────────────┘
-
-After pressing 'c' (Connections):
-┌─ Application Map - Connections ───────────┐
-│ Authentication                            │
-│   ├─→ Content Management (perm check)    │
-│   └─→ User Management (role assign)      │
-│ Content Management                        │
-│   ├─→ Auth (validate access)             │
-│   └─→ Notifications (on publish)         │
-│ Users & Permissions                       │
-│   └─→ Auth (assign roles)                │
-└───────────────────────────────────────────┘
-
-After pressing 'd' (Data Flows):
-┌─ Data Flows ──────────────────────────────┐
-│ /api/login (creds)                       │
-│   → Auth service (validate)              │
-│   → Session store (create)               │
-│   ← JWT token (return)                   │
-│                                          │
-│ /api/content (POST)                      │
-│   → Auth (check perms) [required]        │
-│   → Content DB (save) [critical]         │
-│   ← Content ID (return)                  │
-└───────────────────────────────────────────┘
-```
-
-### Performance
-
-- **Instant loading** — Tree loads immediately
-- **Lazy expansion** — Details load when expanded
-- **Search indexing** — Fast feature finding
-- **Memory efficient** — Works with large codebases
-
-### Keyboard Shortcuts Reference
-
-```
-Navigation:
-  ↑/↓         Move up/down
-  ←/→         Collapse/expand
-  Home/End    Go to first/last item
-  PageUp/Down Scroll by pages
-
-Display Modes:
-  t           Tree view (default)
-  f           Flow view
-  c           Connections view
-  d           Data flows view
-  s           Statistics panel
-  ?           Help menu
-
-Filtering:
-  /           Search
-  Filter:     (then type)
-    h         High risk only
-    m         Medium risk only
-    l         Low risk only
-    a         All (clear filter)
-
-Actions:
-  Enter       Show full details
-  e           Edit annotations
-  q           Quit
-```
-
-## 3. Full Graph JSON Output
-
-### What It Includes
-
-Beyond the hierarchical JSON, a complete **graph structure** showing:
-- All nodes (domains, features, flows, endpoints)
-- All edges/connections (dependencies, data flows, relationships)
-- Data flow paths with sensitivity levels
-- Internal and external dependencies
-
-### Graph Structure
-
-The JSON includes a new `graph` section with:
-
-**Nodes (Entities):**
-```json
-"nodes": [
-  {
-    "id": "auth_domain",
-    "type": "domain",
-    "label": "Authentication",
-    "risk_level": "high"
-  },
-  {
-    "id": "login_flow",
-    "type": "flow",
-    "label": "Login Flow",
-    "parent_domain": "auth_domain",
-    "risk_level": "high"
-  },
-  {
-    "id": "jwt_endpoint",
-    "type": "endpoint",
-    "label": "POST /api/auth/login",
-    "methods": ["POST"],
-    "permissions_required": ["authenticate"]
-  }
-]
-```
-
-**Edges (Connections):**
-```json
-"edges": [
-  {
-    "source": "login_flow",
-    "target": "permission_check_flow",
-    "type": "dependency",
-    "label": "requires auth before permission check",
-    "direction": "requires",
-    "critical": true
-  },
-  {
-    "source": "content_domain",
-    "target": "auth_domain",
-    "type": "depends_on",
-    "label": "uses auth for access control",
-    "strength": "required"
-  }
-]
-```
-
-**Data Flows (Sensitivity):**
-```json
-"data_flows": [
-  {
-    "id": "user_login_data",
-    "name": "User Login Credentials",
-    "source": "POST /api/auth/login",
-    "destination": "Auth Service",
-    "data_type": "user_credentials",
-    "sensitivity": "critical",
-    "encryption": "TLS_1_3",
-    "validation": "comprehensive",
-    "pii_involved": true
-  }
-]
-```
-
-**Dependencies:**
-```json
-"dependencies": {
-  "internal": [
-    {
-      "source_domain": "auth",
-      "target_domain": "content",
-      "type": "permission_check",
-      "strength": "required",
-      "flow_count": 8
-    }
-  ],
-  "external": [
-    {
-      "service": "OAuth Provider",
-      "endpoint": "https://oauth.example.com",
-      "type": "authentication",
-      "criticality": "high",
-      "fallback_required": true
-    }
-  ]
-}
-```
-
-### Relationship Types
-
-The edges can represent:
-
-- **`dependency`** — Flow A depends on Flow B completing first
-- **`permission_check`** — Feature checks permission from another domain
-- **`depends_on`** — Domain depends on another domain's functionality
-- **`calls`** — Endpoint calls another endpoint
-- **`triggers`** — Event triggers workflow
-- **`uses`** — Component uses feature from another domain
-- **`requires_auth`** — Requires authentication
-- **`requires_permission`** — Requires specific permission
-- **`requires_role`** — Requires specific role
-
-### Use Cases for Graph Data
-
-1. **Vulnerability Assessment**
-   - Follow data flows to sensitive operations
-   - Identify critical paths through the system
-   - Trace permission checks for bypass opportunities
-
-2. **Architecture Understanding**
-   - See how domains depend on each other
-   - Identify tight coupling
-   - Plan refactoring based on dependencies
-
-3. **Security Testing**
-   - Understand data flow for penetration testing
-   - Identify where auth/validation occurs
-   - Trace sensitive operations
-
-4. **Dependency Analysis**
-   - External service dependencies
-   - Potential points of failure
-   - Critical paths that need fallbacks
-
-5. **Documentation**
-   - Generate architecture diagrams from graph
-   - Show data flow diagrams
-   - Document inter-domain relationships
-
-### Example: Using the Graph
-
-**Query: "What flows access user data?"**
-
-```python
-# Find all nodes containing "user"
-user_nodes = [n for n in graph['nodes'] if 'user' in n['label'].lower()]
-
-# Find what they connect to
-connections = []
-for node in user_nodes:
-    edges = [e for e in graph['edges'] if e['source'] == node['id']]
-    connections.extend(edges)
-
-# Result: Shows all flows and endpoints that touch user data
-```
-
-**Query: "What domains depend on auth?"**
-
-```python
-# Find all edges pointing to auth domain
-dependent_domains = [e for e in graph['edges'] 
-                     if e['target'] == 'auth_domain']
-
-# Shows: Content, Users, Payments all depend on auth
-```
-
-**Query: "What's the critical data path?"**
-
-```python
-# Find critical data flows
-critical = [df for df in graph['data_flows'] 
-            if df['sensitivity'] == 'critical']
-
-# Trace where each critical flow goes
-for flow in critical:
-    # Find endpoints involved
-    # Find domains touched
-    # Identify validation/encryption points
-```
-
-## Combining All Three Features
-
-### Complete Workflow
-
-```
-1. Upload codebase (any language)
-        ↓
-2. Skill auto-detects language and patterns
-        ↓
-3. Output generated:
-   ├─ JSON with full graph
-   ├─ Markdown documentation
-   └─ Interactive TUI
-        ↓
-4. Interact with TUI:
-   ├─ Browse tree structure
-   ├─ View connections
-   ├─ See data flows
-   └─ Search for features
-        ↓
-5. Use JSON graph for:
-   ├─ Security analysis
-   ├─ Architecture visualization
-   ├─ Dependency mapping
-   └─ Integration with tools (Hacktron, etc.)
-```
-
-### Example: Full Workflow
-
-**Input:** Python Django CMS code
-
-**Step 1:** Upload files → Skill auto-detects Python
-
-**Step 2:** Choose how to explore:
-- Option A: Use interactive TUI to browse
-- Option B: Use JSON graph for programmatic analysis
-- Option C: Use Markdown for documentation
-
-**Step 3: TUI Example**
-```
-Press '/' to search → type "admin" → see all admin features
-Press 'c' to show connections → see what depends on admin
-Press 'd' to show data flows → see what data admins can access
-```
-
-**Step 4: JSON Graph Example**
-```json
-{
-  "graph": {
-    "edges": [
-      {
-        "source": "admin_panel",
-        "target": "user_management",
-        "type": "requires_role",
-        "role": "admin"
-      }
-    ]
-  }
-}
-// Use to analyze: Only admin role can access user management
-```
-
-## Technical Details
-
-### TUI Implementation
-
-The interactive TUI can be:
-- Rendered in terminal using ncurses-like patterns
-- Run as a local web-based dashboard
-- Exported as HTML for browser viewing
-- Integrated with IDE plugins
-
-### Graph Database Format
-
-The graph structure follows standard formats:
-- **Node-Link JSON** — Human-readable, easy to parse
-- **GraphQL compatible** — Can be served via GraphQL API
-- **Graph visualization** — Can be rendered with D3.js, Cytoscape, etc.
-
-### Data Flow Analysis
-
-Each data flow includes:
-- Source and destination
-- Data sensitivity level (PUBLIC, INTERNAL, CONFIDENTIAL, CRITICAL)
-- Encryption status
-- Validation completeness
-- PII involvement
-- Compliance tags
-
-## Advanced Queries
-
-With the graph JSON, you can answer questions like:
-
-1. **"What flows can be triggered by unauthenticated users?"**
-2. **"Which endpoints have the fewest permission checks?"**
-3. **"What external services are critical?"**
-4. **"How many steps until sensitive operations?"**
-5. **"What's the shortest path to admin functions?"**
-6. **"Which domains have circular dependencies?"**
-
-## Performance Characteristics
-
-| Feature | Performance |
-|---------|-------------|
-| Language detection | <100ms |
-| Pattern analysis | 1-10 seconds |
-| Graph generation | <5 seconds |
-| TUI rendering | <500ms |
-| Search/filter | <50ms |
-| Full JSON output | <1 second |
-
-All scale with codebase size.
-
-## Next Steps
-
-1. **Use the interactive TUI** — `↑/↓` arrow keys to browse
-2. **Explore the graph** — Use JSON for programmatic analysis
-3. **Try cross-language** — Test with Python, Go, Java, etc.
-4. **Feed to tools** — Use graph JSON with Hacktron or visualization tools
-5. **Give feedback** — Help us improve detection for your use cases
+---
+name: app-mapper
+description: Map application functionalities, workflows, domains, and features from source code. Use when analyzing a codebase to identify application structure, domains, user workflows, functional areas, and security-relevant features (roles, permissions, authentication, endpoints). Generates three complementary outputs - JSON with full relationship graph, Markdown documentation, and interactive TUI. Language-agnostic detection works with JavaScript, Python, Go, Java, PHP, Ruby, C#, Rust and any language via pattern recognition. Perfect for security assessment preparation (feeding to Hacktron), architecture understanding, feature tracking, and vulnerability surface mapping.
+license: MIT
+compatibility: Requires source code files or directories. All programming languages supported (language-agnostic). Outputs: JSON (graph-based), Markdown (documentation), TUI (interactive tree view).
+metadata:
+  author: security-team
+  version: "2.0.0"
+  category: security, architecture, analysis
+  difficulty: beginner
+allowed-tools: Read FileSystem Analysis
+---
+
+# App Mapper Skill
+
+**PURPOSE**: Analyze source codebases to extract application structure, security-relevant features, workflows, and risk areas.
 
 ---
 
-**These advanced features make App Mapper:**
-✅ More flexible (all languages)
-✅ More interactive (browsable TUI)
-✅ More powerful (full relationship graphs)
-✅ More useful for security and architecture
+## CRITICAL RULES
 
-Enjoy! 🚀
+**ALWAYS analyze the complete codebase:**
+- Read ALL source files provided
+- Identify EVERY domain and functional area
+- Extract ALL user roles, permissions, and authentication methods
+- Map EVERY user-facing workflow
+- FLAG ALL security-sensitive components
+
+**NEVER assume without verification:**
+- Don't skip code sections
+- Don't make assumptions about missing files
+- Don't rely on file names alone
+- Always trace data flows end-to-end
+
+**ALWAYS generate three complementary outputs:**
+1. **JSON** — Graph-based structured data (nodes, edges, data flows, dependencies)
+2. **Markdown** — Human-readable documentation with details
+3. **TUI** — Interactive terminal explorer for browsing structure
+
+**Language Support Guaranteed:**
+- JavaScript/TypeScript, Python, Go, Java, PHP, Ruby, C#, Rust (built-in patterns)
+- Any other language via language-agnostic pattern detection
+- Auto-detection requires zero configuration
+
+---
+
+## Core Mindset
+
+Think like an **application security auditor**:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ANALYSIS APPROACH                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│ • THOROUGHNESS: Examine every component systematically      │
+│ • CURIOSITY: Question every design choice and trust         │
+│ • CONTEXT: Understand the business purpose first            │
+│ • RIGOR: Verify findings against actual code                │
+│ • COMPLETENESS: Leave no stone unturned                     │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Analysis Methodology
+
+### Phase 1: Reconnaissance
+
+**Examine all inputs systematically:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ INFORMATION GATHERING                                        │
+├─────────────────────────────────────────────────────────────┤
+│ 1. PROJECT CONTEXT                                           │
+│    - Application name and purpose                            │
+│    - Technology stack and frameworks                         │
+│    - Architecture style (monolith, microservices, API, etc.)│
+│                                                              │
+│ 2. SOURCE CODE ANALYSIS                                      │
+│    - Read EVERY file (entry points first)                    │
+│    - Identify modules and their relationships                │
+│    - Extract user-facing features                            │
+│    - Trace data flow paths                                   │
+│    - Note security-sensitive operations                      │
+│                                                              │
+│ 3. FEATURE EXTRACTION                                        │
+│    - User roles and role hierarchy                           │
+│    - Permissions and access control model                    │
+│    - Authentication mechanisms and flows                     │
+│    - API endpoints and methods                               │
+│    - Data models and entity relationships                    │
+│    - Workflows and business processes                        │
+│                                                              │
+│ 4. DEPENDENCY MAPPING                                        │
+│    - Service-to-service calls                                │
+│    - External service dependencies                           │
+│    - Data flow between components                            │
+│    - Trust boundaries                                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Phase 2: Domain Identification
+
+**Separate concerns into logical domains:**
+
+```
+TYPICAL DOMAINS:
+├─ Authentication & Authorization
+│  ├─ User roles and role hierarchy
+│  ├─ Permission system (RBAC, ACL, capability-based)
+│  ├─ Authentication methods (JWT, session, OAuth, API key)
+│  └─ Access control enforcement points
+│
+├─ Content/Data Management
+│  ├─ Content types and models
+│  ├─ CRUD operations
+│  ├─ Publishing workflows
+│  └─ Data validation
+│
+├─ User Management
+│  ├─ User profiles
+│  ├─ Account creation/modification
+│  ├─ Admin functions
+│  └─ Audit logging
+│
+├─ Payment/Commerce (if applicable)
+│  ├─ Payment processing
+│  ├─ Order management
+│  ├─ Billing workflows
+│  └─ PCI compliance requirements
+│
+└─ [Custom Domain]
+   └─ Any domain specific to the application
+```
+
+### Phase 3: Feature Extraction
+
+**For each domain, extract these feature types:**
+
+| Feature Type | Examples | Security Relevance |
+|--------------|----------|-------------------|
+| **Roles** | Admin, Editor, Author, Viewer | Authorization boundary |
+| **Permissions** | read, write, delete, publish, manage_users | Access control policy |
+| **Authentication** | JWT, Session, OAuth, API Key, WebAuthn | Identity verification |
+| **Endpoints** | REST, GraphQL, RPC, WebSocket, gRPC | Attack surface |
+| **Data Models** | User, Post, Product, Transaction | Data sensitivity |
+| **Workflows** | Login, Publishing, Payment, Approval | Business logic risk |
+| **Data Flows** | Credential → Auth → Token | Sensitive paths |
+| **Dependencies** | Internal, external services | Failure points |
+
+### Phase 4: Risk Assessment
+
+**Identify security-sensitive components:**
+
+```
+RISK FACTORS:
+├─ AUTHENTICATION & AUTHORIZATION
+│  ├─ Weak password policy
+│  ├─ Missing MFA implementation
+│  ├─ Insufficient permission checks
+│  └─ Session management flaws
+│
+├─ DATA HANDLING
+│  ├─ Unvalidated user input
+│  ├─ SQL/command injection vectors
+│  ├─ Sensitive data in logs
+│  └─ Missing encryption
+│
+├─ API SECURITY
+│  ├─ Missing authentication
+│  ├─ Rate limiting absent
+│  ├─ CORS misconfigurations
+│  └─ Unvalidated redirects
+│
+├─ ADMIN FUNCTIONS
+│  ├─ Privilege escalation vectors
+│  ├─ Insufficient audit logging
+│  ├─ Missing input validation
+│  └─ No rate limiting
+│
+└─ EXTERNAL INTEGRATIONS
+   ├─ Unvalidated webhooks
+   ├─ API key exposure
+   ├─ Insecure service communication
+   └─ Dependency vulnerabilities
+```
+
+---
+
+## Usage
+
+### Inputs
+
+Provide source code via:
+- Directory path (entire codebase or subset)
+- Individual files
+- Repository structure
+- Code snippets (for partial analysis)
+
+### Outputs: Three Complementary Formats
+
+**ALL THREE are always generated:**
+
+#### OUTPUT 1: JSON (Graph-Based Structure)
+
+Complete relationship graph with nodes, edges, and data flows:
+
+```json
+{
+  "app_metadata": {
+    "name": "Application Name",
+    "language": "Python",
+    "type": "Web Application",
+    "complexity_score": 7.5,
+    "total_domains": 5,
+    "total_flows": 12,
+    "total_endpoints": 20
+  },
+  "domains": [
+    {
+      "id": "auth",
+      "name": "Authentication & Authorization",
+      "features": [
+        {
+          "id": "roles",
+          "type": "role_system",
+          "name": "User Roles",
+          "items": [
+            {"name": "Admin", "permissions": ["read", "write", "delete", "manage_users"]},
+            {"name": "Editor", "permissions": ["read", "write", "publish"]},
+            {"name": "Viewer", "permissions": ["read"]}
+          ],
+          "risk_level": "high"
+        }
+      ],
+      "risk_areas": ["Session management", "Token validation", "Permission enforcement"]
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {"id": "auth_domain", "type": "domain", "label": "Authentication", "risk_level": "high"},
+      {"id": "content_domain", "type": "domain", "label": "Content", "risk_level": "low"}
+    ],
+    "edges": [
+      {
+        "source": "content_domain",
+        "target": "auth_domain",
+        "type": "depends_on",
+        "label": "requires auth for access control"
+      }
+    ]
+  },
+  "data_flows": [
+    {
+      "source": "POST /api/login",
+      "destination": "Auth Service",
+      "data_type": "user_credentials",
+      "sensitivity": "critical",
+      "encryption": "TLS_1_3"
+    }
+  ],
+  "dependencies": {
+    "internal": [...],
+    "external": [...]
+  }
+}
+```
+
+**Graph Components:**
+- `nodes` — Domains, features, flows, endpoints
+- `edges` — Connections (dependency, permission_check, depends_on, calls, triggers, uses)
+- `data_flows` — Sensitive data movement (source → destination)
+- `dependencies` — Internal (domain-to-domain) and external (service) relationships
+
+#### OUTPUT 2: Markdown (Human-Readable Documentation)
+
+Complete application documentation including:
+- Executive summary
+- Domain descriptions
+- Feature lists with risk levels
+- User workflow documentation
+- Data flow diagrams (text-based)
+- Risk area annotations
+- Recommendations
+
+#### OUTPUT 3: TUI (Interactive Terminal Explorer)
+
+Keyboard-navigable application map:
+
+```
+┌─ Application Map ────────────────────────────────────┐
+│                                                      │
+│ ▼ Authentication & Authorization         [HIGH]    │
+│   ├─ ▼ User Roles                        [5 roles] │
+│   │   ├─ Admin [manage all]                        │
+│   │   ├─ Editor [edit content]                     │
+│   │   └─ Viewer [read only]                        │
+│   ├─ JWT Authentication                 [connected]│
+│   └─ Session Management                 [1 flow]  │
+│ ▶ Content Management                     [LOW]     │
+│ ▶ User Management                        [MEDIUM]  │
+│                                                      │
+│ [↑↓] navigate | [→←] expand | [/] search | [?] help│
+│ High-risk: 4 | Total flows: 8 | Commands: c,d,f,s │
+└──────────────────────────────────────────────────────┘
+```
+
+**TUI Commands:**
+```
+Navigation:     ↑/↓ move, ←/→ collapse/expand, Home/End
+View Modes:     t=tree, f=flows, c=connections, d=data-flows, s=stats
+Filtering:      / search,  h=high-risk, m=medium, l=low, a=all
+Actions:        Enter=details, q=quit, ?=help
+```
+
+---
+
+## Detection Capabilities
+
+### Language Support
+
+**Built-in Pattern Recognition:**
+- JavaScript/TypeScript (Express, Next.js, Fastify, NestJS, Koa)
+- Python (Django, Flask, FastAPI, Pyramid, Bottle)
+- Go (standard library, Gin, Echo, gRPC, Fiber)
+- Java/Kotlin (Spring, Spring Boot, Micronaut, Quarkus)
+- PHP (Laravel, Symfony, WordPress, Slim)
+- Ruby (Rails, Sinatra, Hanami, Grape)
+- C# (.NET, ASP.NET Core, ServiceStack)
+- Rust (Actix, Rocket, Axum, Actix-web)
+
+**Language-Agnostic Detection:**
+- Pattern-based analysis works regardless of language
+- Auto-detects from file structure and syntax patterns
+- Zero configuration required
+
+---
+
+## What Gets Detected
+
+```
+FEATURE CATEGORIES:
+
+1. ROLE & PERMISSION SYSTEMS
+   ├─ Role definitions (Admin, Editor, Author, Viewer, etc.)
+   ├─ Permission matrices
+   ├─ Role hierarchies and inheritance
+   └─ Access control model (RBAC, ACL, ABAC)
+
+2. AUTHENTICATION MECHANISMS
+   ├─ JWT tokens
+   ├─ Session-based auth
+   ├─ OAuth / OpenID Connect
+   ├─ SAML
+   ├─ API Keys
+   └─ WebAuthn / MFA
+
+3. DATA MODELS & TYPES
+   ├─ User entities
+   ├─ Content types (Posts, Pages, Products, etc.)
+   ├─ Relationships between entities
+   ├─ Database schema patterns
+   └─ Data sensitivity levels
+
+4. API ENDPOINTS
+   ├─ HTTP methods (GET, POST, PUT, DELETE, PATCH)
+   ├─ REST vs GraphQL vs RPC patterns
+   ├─ Required authentication/authorization
+   ├─ Input validation patterns
+   └─ Error handling approaches
+
+5. USER WORKFLOWS
+   ├─ Login flow
+   ├─ Content creation → Review → Publish
+   ├─ Payment processing flow
+   ├─ User registration and onboarding
+   └─ Admin operations
+
+6. DATA FLOWS
+   ├─ Credential transmission
+   ├─ User input → Processing → Output
+   ├─ Database interactions
+   └─ Service-to-service communication
+
+7. RISK-SENSITIVE OPERATIONS
+   ├─ File uploads / downloads
+   ├─ Payment processing
+   ├─ Admin functions
+   ├─ Privilege escalation vectors
+   └─ Sensitive data access
+```
+
+---
+
+## Success Criteria
+
+**Analysis is complete when:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ COMPLETION CHECKLIST                                         │
+├─────────────────────────────────────────────────────────────┤
+│ ✓ All source files examined                                  │
+│ ✓ Complete domain map created                                │
+│ ✓ All user roles identified                                  │
+│ ✓ All permissions documented                                 │
+│ ✓ Authentication methods listed                              │
+│ ✓ All endpoints mapped                                       │
+│ ✓ User workflows documented                                  │
+│ ✓ Data flows traced end-to-end                               │
+│ ✓ Risk areas flagged and annotated                           │
+│ ✓ Dependencies (internal & external) identified              │
+│ ✓ JSON graph generated with all relationships                │
+│ ✓ Markdown documentation complete                            │
+│ ✓ TUI explorer functional and browsable                      │
+│ ✓ Findings validated against actual source code              │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Do not stop until:**
+1. All domains and features are documented
+2. All risk areas are identified and annotated
+3. Both high-level AND detailed views are complete
+4. Outputs are accurate and reproducible
+
+---
+
+## Analysis Documentation Template
+
+**After completing analysis, provide findings in this format:**
+
+```markdown
+## Application Analysis: [Application Name]
+
+**Metadata:**
+- Language: [Programming Language]
+- Type: [Web App / API / Microservice / etc]
+- Complexity Score: [1-10]
+- Total Domains: [N]
+- Total Features: [N]
+
+### Domain Overview
+[List of all identified domains with brief descriptions]
+
+### Authentication & Authorization
+- **Model**: [RBAC / ACL / ABAC / Custom]
+- **Roles**: [List all roles]
+- **Permissions**: [List all permissions]
+- **Auth Methods**: [JWT / Session / OAuth / etc]
+- **Risk Areas**: [Identified vulnerabilities]
+
+### [Domain Name]
+- **Purpose**: [What this domain does]
+- **Features**: [List of features]
+- **Workflows**: [Workflows in this domain]
+- **Risk Level**: [HIGH / MEDIUM / LOW]
+- **Concerns**: [Identified risks]
+
+### Data Flows
+[Critical data paths and their sensitivity levels]
+
+### Dependencies
+- **Internal**: [Domain-to-domain relationships]
+- **External**: [Services this application depends on]
+
+### Security Summary
+[High-level assessment of security posture]
+
+### Recommendations
+[Suggested areas for security testing or improvement]
+
+---
+
+### Full JSON Graph
+[Complete graph-based representation for programmatic analysis]
+```
+
+---
+
+## Approach Summary
+
+```
+ANALYSIS PROCESS:
+
+1. READ all source code carefully
+   └─ Entry points first, then supporting modules
+   
+2. MAP the application structure
+   └─ Identify domains and their relationships
+   
+3. EXTRACT features systematically
+   ├─ User roles and permissions
+   ├─ Authentication mechanisms
+   ├─ API endpoints and methods
+   ├─ Data models and relationships
+   └─ Workflows and business logic
+   
+4. IDENTIFY security-sensitive areas
+   └─ Flag high-risk components for further testing
+   
+5. GENERATE three complementary outputs
+   ├─ JSON (for Hacktron integration)
+   ├─ Markdown (for documentation)
+   └─ TUI (for interactive exploration)
+   
+6. VALIDATE findings against source code
+   └─ Ensure accuracy and completeness
+   
+7. DOCUMENT the analysis
+   └─ Use standard template for consistency
+```
+
+---
+
+## Integration Points
+
+**Use analysis results with:**
+
+| Tool | Use Case | Input Format |
+|------|----------|--------------|
+| **Hacktron** | Autonomous vulnerability testing | JSON (filter by risk_level: "high") |
+| **D3.js / Cytoscape** | Architecture visualization | JSON graph (nodes/edges) |
+| **Threat Modeling** | Security assessment | Markdown + identified risks |
+| **Team Wiki** | Documentation & onboarding | Markdown output |
+| **CI/CD Pipeline** | Continuous architecture monitoring | JSON for version comparison |
