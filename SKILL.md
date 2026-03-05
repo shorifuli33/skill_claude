@@ -2,7 +2,7 @@
 name: app-mapper
 description: Map application functionalities, workflows, domains, and features from source code. Use when analyzing a codebase to identify application structure, domains, user workflows, functional areas, and security-relevant features (roles, permissions, authentication, endpoints). Generates three complementary outputs - JSON with full relationship graph, Markdown documentation, and interactive TUI. Language-agnostic detection works with JavaScript, Python, Go, Java, PHP, Ruby, C#, Rust and any language via pattern recognition. Perfect for security assessment preparation (feeding to Hacktron), architecture understanding, feature tracking, and vulnerability surface mapping.
 license: MIT
-compatibility: Requires source code files or directories. All programming languages supported (language-agnostic). Outputs: JSON (graph-based), Markdown (documentation), TUI (interactive tree view).
+compatibility: "Source code files or directories. All programming languages supported. Outputs - JSON (graph-based), Markdown (documentation), TUI (interactive tree view)"
 metadata:
   author: security-team
   version: "2.0.0"
@@ -527,3 +527,4 @@ ANALYSIS PROCESS:
 | **Threat Modeling** | Security assessment | Markdown + identified risks |
 | **Team Wiki** | Documentation & onboarding | Markdown output |
 | **CI/CD Pipeline** | Continuous architecture monitoring | JSON for version comparison |
+
