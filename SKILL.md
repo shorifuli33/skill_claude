@@ -1,13 +1,12 @@
 ---
 name: app-mapper
-description: Map application structure, domains, workflows, and security-relevant features from source code. Generates JSON graph, Markdown documentation, and interactive TUI. Language-agnostic analysis for vulnerability assessment, architecture understanding, and feature tracking.
+description: Map application structure, domains, workflows, and security-relevant features from source code. Generates JSON graph, Markdown documentation, and interactive TUI. 
 license: MIT
 compatibility: "Source code files or directories. All programming languages supported. Outputs - JSON (graph-based), Markdown (documentation), TUI (interactive tree view)"
 metadata:
-  author: security-team
-  version: "2.0.0"
-  category: security, architecture, analysis
-  difficulty: beginner
+  author: shoriful islam
+  version: "beta 1.0"
+  category: security
 allowed-tools: Read FileSystem Analysis
 ---
 
@@ -527,5 +526,6 @@ ANALYSIS PROCESS:
 | **Threat Modeling** | Security assessment | Markdown + identified risks |
 | **Team Wiki** | Documentation & onboarding | Markdown output |
 | **CI/CD Pipeline** | Continuous architecture monitoring | JSON for version comparison |
+
 
 
